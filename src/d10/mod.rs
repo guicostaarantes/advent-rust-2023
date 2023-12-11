@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use anyhow::{Context, Result};
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum Tile {
     Ground,
     NorthToSouth,
@@ -32,7 +32,7 @@ impl TryFrom<char> for Tile {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum Direction {
     East,
     North,
@@ -40,7 +40,7 @@ enum Direction {
     South,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Coordinate {
     lattitude: usize,
     longitude: usize,
@@ -69,6 +69,7 @@ impl Coordinate {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Map {
     coordinates: BTreeMap<Coordinate, Tile>,
     size: (usize, usize),
@@ -123,9 +124,11 @@ impl Map {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct LoopFinder<'a> {
     map: &'a Map,
     current_position: Coordinate,
+    start_direction: Direction,
     current_direction: Direction,
     loop_coordinates: BTreeMap<Coordinate, Tile>,
 }
@@ -137,6 +140,7 @@ impl<'a> LoopFinder<'a> {
         let result = Self {
             map,
             current_position,
+            start_direction: Direction::North,
             current_direction: Direction::North,
             loop_coordinates: BTreeMap::new(),
         };
@@ -153,15 +157,10 @@ impl LoopFinder<'_> {
             .get_key_value(&self.current_position)
             .context("Coordinate not found")?;
 
-        match current_tile {
-            Tile::Ground => {
-                return Err(anyhow::anyhow!("Tile not in loop"));
-            }
-            Tile::StartingPosition => {
-                if self.loop_coordinates.len() > 0 {
-                    return Ok(false);
-                }
-
+        // Handle starting position
+        if current_tile == &Tile::StartingPosition {
+            if self.loop_coordinates.len() == 0 {
+                // start of loop, need to pick a direction
                 let east = self
                     .map
                     .coordinates
@@ -170,6 +169,7 @@ impl LoopFinder<'_> {
                     || east == Some(&Tile::NorthToWest)
                     || east == Some(&Tile::SouthToWest)
                 {
+                    self.start_direction = Direction::East;
                     self.current_direction = Direction::East;
                     self.loop_coordinates
                         .insert(self.current_position.clone(), east.unwrap().clone());
@@ -186,6 +186,7 @@ impl LoopFinder<'_> {
                     || north == Some(&Tile::SouthToWest)
                     || north == Some(&Tile::SouthToEast)
                 {
+                    self.start_direction = Direction::North;
                     self.current_direction = Direction::North;
                     self.loop_coordinates
                         .insert(self.current_position.clone(), north.unwrap().clone());
@@ -202,6 +203,7 @@ impl LoopFinder<'_> {
                     || west == Some(&Tile::SouthToEast)
                     || west == Some(&Tile::SouthToWest)
                 {
+                    self.start_direction = Direction::West;
                     self.current_direction = Direction::West;
                     self.loop_coordinates
                         .insert(self.current_position.clone(), west.unwrap().clone());
@@ -213,106 +215,66 @@ impl LoopFinder<'_> {
                 // a valid loop needs at least two entrances, so we expect to have found at least
                 // one ending of it.
                 return Err(anyhow::anyhow!("Invalid loop"));
+            } else {
+                // end of loop, need to change S into its actual tile format
+                let starting_tile = match (&self.start_direction, &self.current_direction) {
+                    (Direction::East, Direction::East) => Tile::EastToWest,
+                    (Direction::East, Direction::North) => Tile::SouthToEast,
+                    (Direction::East, Direction::South) => Tile::NorthToEast,
+                    (Direction::North, Direction::East) => Tile::NorthToWest,
+                    (Direction::North, Direction::North) => Tile::NorthToSouth,
+                    (Direction::North, Direction::West) => Tile::NorthToEast,
+                    (Direction::West, Direction::North) => Tile::SouthToWest,
+                    (Direction::West, Direction::West) => Tile::EastToWest,
+                    (Direction::West, Direction::South) => Tile::NorthToWest,
+                    _ => unreachable!(),
+                };
+
+                self.loop_coordinates
+                    .insert(self.current_position.clone(), starting_tile);
+
+                // return false to end navigation loop
+                return Ok(false);
             }
-            Tile::NorthToSouth => {
-                if self.current_direction == Direction::North {
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::NorthToSouth);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else if self.current_direction == Direction::South {
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::NorthToSouth);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else {
-                    return Err(anyhow::anyhow!("Invalid loop 1"));
-                }
+        }
+
+        // Handle cases other than starting position
+        match (current_tile, &self.current_direction) {
+            (Tile::NorthToEast, Direction::West) => {
+                self.current_direction = Direction::North;
             }
-            Tile::EastToWest => {
-                if self.current_direction == Direction::East {
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::EastToWest);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else if self.current_direction == Direction::West {
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::EastToWest);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else {
-                    return Err(anyhow::anyhow!("Invalid loop 2"));
-                }
+            (Tile::NorthToEast, Direction::South) => {
+                self.current_direction = Direction::East;
             }
-            Tile::NorthToEast => {
-                if self.current_direction == Direction::West {
-                    self.current_direction = Direction::North;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::NorthToEast);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else if self.current_direction == Direction::South {
-                    self.current_direction = Direction::East;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::NorthToEast);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else {
-                    return Err(anyhow::anyhow!("Invalid loop 3"));
-                }
+            (Tile::NorthToWest, Direction::East) => {
+                self.current_direction = Direction::North;
             }
-            Tile::NorthToWest => {
-                if self.current_direction == Direction::South {
-                    self.current_direction = Direction::West;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::NorthToWest);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else if self.current_direction == Direction::East {
-                    self.current_direction = Direction::North;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::NorthToWest);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else {
-                    return Err(anyhow::anyhow!("Invalid loop 4"));
-                }
+            (Tile::NorthToWest, Direction::South) => {
+                self.current_direction = Direction::West;
             }
-            Tile::SouthToWest => {
-                if self.current_direction == Direction::East {
-                    self.current_direction = Direction::South;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::SouthToWest);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else if self.current_direction == Direction::North {
-                    self.current_direction = Direction::West;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::SouthToWest);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else {
-                    return Err(anyhow::anyhow!("Invalid loop 5"));
-                }
+            (Tile::SouthToWest, Direction::East) => {
+                self.current_direction = Direction::South;
             }
-            Tile::SouthToEast => {
-                if self.current_direction == Direction::West {
-                    self.current_direction = Direction::South;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::SouthToEast);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else if self.current_direction == Direction::North {
-                    self.current_direction = Direction::East;
-                    self.loop_coordinates
-                        .insert(self.current_position.clone(), Tile::SouthToEast);
-                    self.current_position =
-                        current_coordinate.find_by_direction(&self.current_direction);
-                } else {
-                    return Err(anyhow::anyhow!("Invalid loop 6"));
-                }
+            (Tile::SouthToWest, Direction::North) => {
+                self.current_direction = Direction::West;
+            }
+            (Tile::SouthToEast, Direction::North) => {
+                self.current_direction = Direction::East;
+            }
+            (Tile::SouthToEast, Direction::West) => {
+                self.current_direction = Direction::South;
+            }
+            (Tile::NorthToSouth, Direction::North) => {}
+            (Tile::NorthToSouth, Direction::South) => {}
+            (Tile::EastToWest, Direction::East) => {}
+            (Tile::EastToWest, Direction::West) => {}
+            _ => {
+                return Err(anyhow::anyhow!("Invalid loop"));
             }
         };
+        self.loop_coordinates
+            .insert(self.current_position.clone(), current_tile.clone());
+        self.current_position = current_coordinate.find_by_direction(&self.current_direction);
 
         Ok(true)
     }

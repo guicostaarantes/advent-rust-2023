@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct MapEntry {
     source: usize,
     length: usize,
@@ -25,7 +25,7 @@ impl TryFrom<&str> for MapEntry {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Map {
     entries: Vec<MapEntry>,
 }
@@ -112,6 +112,7 @@ impl TryFrom<&str> for Map {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Almanac {
     seeds: Vec<usize>,
     maps: Vec<Map>,

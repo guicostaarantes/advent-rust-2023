@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Card {
     winning_numbers: Vec<usize>,
     your_numbers: Vec<usize>,

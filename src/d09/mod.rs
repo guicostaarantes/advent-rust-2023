@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Sequence {
     levels: Vec<Vec<isize>>,
 }
@@ -70,6 +71,7 @@ impl Sequence {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Sequences {
     values: Vec<Sequence>,
 }

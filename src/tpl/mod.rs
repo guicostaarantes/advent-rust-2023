@@ -1,5 +1,10 @@
 use anyhow::{Context, Result};
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct Example {
+    example: usize
+}
+
 pub fn run_part_1(input: String) -> Result<usize> {
     todo!()
 }

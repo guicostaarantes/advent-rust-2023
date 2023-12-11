@@ -1,10 +1,16 @@
 use anyhow::{Context, Result};
 
-#[derive(Default)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Round {
     red: usize,
     green: usize,
     blue: usize,
+}
+
+impl Default for Round {
+    fn default() -> Self {
+        Self { red: 0, green: 0, blue: 0 }
+    }
 }
 
 impl TryFrom<&str> for Round {
@@ -43,6 +49,7 @@ impl TryFrom<&str> for Round {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Game {
     number: usize,
     rounds: Vec<Round>,
@@ -73,6 +80,7 @@ impl TryFrom<&str> for Game {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Match {
     games: Vec<Game>,
 }

@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 
 use anyhow::{Context, Result};
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum Card {
     Joker,
     Two,
@@ -44,7 +44,7 @@ impl TryFrom<char> for Card {
     }
 }
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum HandKind {
     HighCard,
     OnePair,
@@ -55,7 +55,7 @@ enum HandKind {
     FiveOfAKind,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Ord)]
 struct Hand {
     cards: Vec<Card>,
 }
@@ -158,6 +158,7 @@ impl PartialOrd for Hand {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Player {
     hand: Hand,
     bid: usize,
@@ -175,6 +176,7 @@ impl TryFrom<&str> for Player {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Round {
     players: Vec<Player>,
 }

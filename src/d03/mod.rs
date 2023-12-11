@@ -1,27 +1,27 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use anyhow::{Context, Result};
 
-#[derive(PartialEq, Eq, Hash, Debug)]
-struct Position {
-    ln: usize,
-    col: usize,
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct Coordinate {
+    lattitude: usize,
+    longitude: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct PartNumber {
     value: String,
-    start_position: Position,
+    start_position: Coordinate,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Schematic {
     value: Vec<Vec<char>>,
 }
 
 impl Schematic {
-    fn check_surroundings(&self, pn: &PartNumber) -> HashMap<Position, &char> {
-        let mut result = HashMap::new();
+    fn check_surroundings(&self, pn: &PartNumber) -> BTreeMap<Coordinate, &char> {
+        let mut result = BTreeMap::new();
         let mut surroundings = vec![
             (0usize, 0usize),
             (1, 0),
@@ -37,10 +37,10 @@ impl Schematic {
         let _ = surroundings
             .iter()
             .map(|su| {
-                let ln = (su.0 + pn.start_position.ln)
+                let ln = (su.0 + pn.start_position.lattitude)
                     .checked_sub(1)
                     .context("First line")?;
-                let col = (su.1 + pn.start_position.col)
+                let col = (su.1 + pn.start_position.longitude)
                     .checked_sub(1)
                     .context("First column")?;
                 let char_at_position = self
@@ -49,7 +49,7 @@ impl Schematic {
                     .context("Last line")?
                     .get(col)
                     .context("Last column")?;
-                result.insert(Position { ln, col }, char_at_position);
+                result.insert(Coordinate { lattitude: ln, longitude: col }, char_at_position);
                 anyhow::Ok(())
             })
             .collect::<Vec<Result<()>>>();
@@ -80,7 +80,7 @@ pub fn run_part_1(input: String) -> Result<usize> {
                     // start capturing part number
                     current_part_number = Some(PartNumber {
                         value: String::from(*char),
-                        start_position: Position { ln: i, col: j },
+                        start_position: Coordinate { lattitude: i, longitude: j },
                     });
                 }
             } else {
@@ -103,7 +103,7 @@ pub fn run_part_1(input: String) -> Result<usize> {
 }
 
 pub fn run_part_2(input: String) -> Result<usize> {
-    let mut gear_map: HashMap<Position, Vec<usize>> = HashMap::new();
+    let mut gear_map: BTreeMap<Coordinate, Vec<usize>> = BTreeMap::new();
 
     let schematic = Schematic {
         value: input
@@ -125,7 +125,7 @@ pub fn run_part_2(input: String) -> Result<usize> {
                     // start capturing part number
                     current_part_number = Some(PartNumber {
                         value: String::from(*char),
-                        start_position: Position { ln: i, col: j },
+                        start_position: Coordinate { lattitude: i, longitude: j },
                     });
                 }
             } else {

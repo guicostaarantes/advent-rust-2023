@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Race {
     time: usize,
     distance_to_beat: usize,
@@ -30,6 +31,7 @@ impl TryFrom<&str> for Race {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct RaceBoard {
     races: Vec<Race>,
 }
@@ -64,6 +66,7 @@ impl TryFrom<&str> for RaceBoard {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Boat {
     speed: usize,
 }

@@ -18,7 +18,7 @@ fn least_common_multiple(nums: &[u128]) -> u128 {
     a * b / greatest_common_divisor(a, b)
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum Direction {
     Left,
     Right,
@@ -36,15 +36,17 @@ impl TryFrom<char> for Direction {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Position<'a> {
     name: &'a str,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Path<'a> {
     leads_to: BTreeMap<Direction, Position<'a>>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Map<'a> {
     steps: Vec<Direction>,
     paths: BTreeMap<Position<'a>, Path<'a>>,
@@ -161,7 +163,7 @@ impl<'a, 'b> Player<'b> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Circuit {
     steps_per_cycle: usize,
     cycles_to_start: usize,
@@ -219,7 +221,7 @@ impl<'a> Circuit {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct MultipleCircuits {
     circuits: Vec<Circuit>,
 }
