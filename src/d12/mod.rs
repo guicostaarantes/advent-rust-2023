@@ -91,20 +91,18 @@ impl Arrangement {
                 self.find_possible_solutions(starting_from_spring + 1, starting_from_sequence)
             }
             Spring::Damaged => {
+                // this can be the start of a damaged sequence
                 let current_sequence = self.sequences[starting_from_sequence];
-                if starting_from_spring + current_sequence > self.springs.len() {
-                    // the sequence to evaluate has a larger number than the remaining springs
-                    // so this can not be a solution
-                    0
-                } else if self.springs
-                    [starting_from_spring..starting_from_spring + current_sequence]
-                    .contains(&Spring::Operational)
+                if starting_from_spring + current_sequence > self.springs.len()
+                    || self.springs[starting_from_spring..starting_from_spring + current_sequence]
+                        .contains(&Spring::Operational)
                     || self.springs.get(starting_from_spring + current_sequence)
                         == Some(&Spring::Damaged)
                 {
-                    // it evaluates the next n springs where n is the number of the current sequence
-                    // if it finds that there is an operational spring at some point, or that the next
-                    // spring right after the end is also a damaged one, this can not be a solution
+                    // evaluates the next n springs that can be a damaged sequence
+                    // if there are any operational springs in this interval, or if the spring
+                    // right after the end is a damaged one, this can't be the start of the
+                    // sequence with that length
                     0
                 } else {
                     // moves to the next n springs and to the next sequence
@@ -115,20 +113,17 @@ impl Arrangement {
                 }
             }
             Spring::Unknown => {
+                // this can be the start of a damaged sequence or an operational spring
                 let current_sequence = self.sequences[starting_from_sequence];
-                if starting_from_spring + current_sequence > self.springs.len() {
-                    // the sequence to evaluate has a larger number than the remaining springs
-                    // so this can not be a solution
-                    0
-                } else if self.springs
-                    [starting_from_spring..starting_from_spring + current_sequence]
-                    .contains(&Spring::Operational)
+                if starting_from_spring + current_sequence > self.springs.len()
+                    || self.springs[starting_from_spring..starting_from_spring + current_sequence]
+                        .contains(&Spring::Operational)
                     || self.springs.get(starting_from_spring + current_sequence)
                         == Some(&Spring::Damaged)
                 {
-                    // it evaluates the next n springs where n is the number of the current sequence
-                    // if it finds that there is an operational spring at some point, or that the next
-                    // spring right after the end is also a damaged one, the current spring can only be
+                    // evaluates the next n springs that can be a damaged sequence
+                    // if there are any operational springs in this interval, or if the spring
+                    // right after the end is a damaged one, the current spring can only be
                     // an operational one
                     self.find_possible_solutions(starting_from_spring + 1, starting_from_sequence)
                 } else {

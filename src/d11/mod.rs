@@ -29,7 +29,7 @@ impl TryFrom<(&str, usize)> for Space {
         let no_of_cols = value
             .lines()
             .next()
-            .unwrap()
+            .context("Invalid input")?
             .chars()
             .fold(0, |acc, _| acc + 1);
 
