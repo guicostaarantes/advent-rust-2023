@@ -109,7 +109,7 @@ impl TryFrom<&str> for Map {
                 line.chars()
                     .enumerate()
                     .map(|(j, char)| {
-                        let item = Item::try_from(char)?;
+                        let item = Item::try_from(char).context("Invalid input")?;
                         contents.insert(
                             Coordinate {
                                 x: i as isize,
@@ -381,7 +381,10 @@ pub fn run_part_2(input: String) -> Result<usize> {
         map.reset_state();
 
         map.add_new_beam(NewBeam {
-            start: Coordinate { x: k, y: map.bounds.1.x + 1 },
+            start: Coordinate {
+                x: k,
+                y: map.bounds.1.x + 1,
+            },
             direction: Direction::West,
         });
 
@@ -415,7 +418,10 @@ pub fn run_part_2(input: String) -> Result<usize> {
         map.reset_state();
 
         map.add_new_beam(NewBeam {
-            start: Coordinate { x: map.bounds.1.y + 1, y: k },
+            start: Coordinate {
+                x: map.bounds.1.y + 1,
+                y: k,
+            },
             direction: Direction::North,
         });
 

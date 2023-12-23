@@ -178,6 +178,6 @@ mod tests {
     #[test]
     fn part_2_prod() {
         let input = read_to_string("src/d15/prod.txt").expect("could not read file");
-        assert_eq!(run_part_2(input).unwrap(), 111);
+        assert_eq!(run_part_2(input).unwrap(), 269410);
     }
 }

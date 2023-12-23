@@ -46,7 +46,8 @@ impl TryFrom<&str> for Grid {
                     .map(|c| Cell::try_from(c))
                     .collect::<Result<Vec<Cell>>>()
             })
-            .collect::<Result<Vec<Vec<Cell>>>>()?;
+            .collect::<Result<Vec<Vec<Cell>>>>()
+            .context("Invalid input")?;
 
         Ok(Self { contents })
     }
